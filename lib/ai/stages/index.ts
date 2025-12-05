@@ -12,24 +12,49 @@
  * 5. Client View - Generate client-facing content
  * 6. Summary - Generate session summaries
  * 
- * Each stage module will export:
+ * Each stage module exports:
  * - A main processing function
  * - Any helper utilities specific to that stage
  * - Type definitions for stage inputs/outputs
  */
 
-// Stage implementations will be added in subsequent PRs:
-// - PR #8: preprocessing.ts, crisisClassifier.ts
-// - PR #9: extraction.ts
-// - PR #10: therapistView.ts, clientView.ts
-// - PR #11: summary.ts
+// =============================================================================
+// STAGE EXPORTS
+// =============================================================================
+
+// Stage 1: Preprocessing
+export {
+  preprocessTranscript,
+  cleanTranscript,
+  identifySpeakers,
+  chunkTranscript,
+  extractMetadata,
+  parseSpeakerTurns,
+  getPreprocessingSummary,
+} from './preprocessing';
+
+// Stage 2: Crisis Classification
+export {
+  classifyCrisis,
+  quickCrisisCheck,
+  getSeverityLabel,
+  getSeverityColor,
+} from './crisisClassifier';
+
+// Stage 3: Canonical Extraction
+export {
+  extractCanonicalPlan,
+  createNewPlanFromExtraction,
+  getExtractionSummary,
+  type ExtractionInput,
+  type ExtractionResult,
+} from './canonicalExtraction';
 
 // =============================================================================
 // STAGE TYPES
 // =============================================================================
 
-import type { StageResult, PreprocessedTranscript } from '../types';
-import type { CrisisCheckResult } from '../schemas';
+import type { StageResult } from '../types';
 
 /**
  * Base interface for all pipeline stages
@@ -56,76 +81,6 @@ export const DEFAULT_STAGE_CONFIG: StageConfig = {
   timeout: 60000,
   debug: process.env.NODE_ENV === 'development',
 };
-
-// =============================================================================
-// PLACEHOLDER EXPORTS
-// =============================================================================
-
-/**
- * Preprocessing stage (PR #8)
- * Cleans and structures the transcript for downstream processing
- */
-export async function preprocessTranscript(
-  transcript: string,
-  _config?: Partial<StageConfig>
-): Promise<StageResult<PreprocessedTranscript>> {
-  // Placeholder implementation
-  const startTime = Date.now();
-  
-  return {
-    success: true,
-    data: {
-      originalLength: transcript.length,
-      processedLength: transcript.length,
-      chunks: [{
-        index: 0,
-        text: transcript,
-        startOffset: 0,
-        endOffset: transcript.length,
-        speakerTurns: 0,
-      }],
-      speakers: [],
-      metadata: {
-        estimatedDuration: Math.round(transcript.split(/\s+/).length / 150), // ~150 words/min
-        topicDensity: 0.5,
-        emotionalIntensity: 0.5,
-        hasCrisisLanguage: false,
-      },
-    },
-    durationMs: Date.now() - startTime,
-  };
-}
-
-/**
- * Crisis check stage (PR #8)
- * Analyzes transcript for safety concerns
- */
-export async function checkForCrisis(
-  _transcript: string,
-  _config?: Partial<StageConfig>
-): Promise<StageResult<CrisisCheckResult>> {
-  // Placeholder implementation
-  const startTime = Date.now();
-  const { CrisisSeverity } = await import('@prisma/client');
-  
-  return {
-    success: true,
-    data: {
-      isCrisis: false,
-      severity: CrisisSeverity.NONE,
-      shouldHalt: false,
-      assessment: {
-        overallSeverity: CrisisSeverity.NONE,
-        confidence: 1,
-        indicators: [],
-        immediateRisk: false,
-        recommendedActions: [],
-        reasoning: 'Placeholder - full implementation in PR #8',
-      },
-    },
-    durationMs: Date.now() - startTime,
-  };
-}
 
 // =============================================================================
 // UTILITY FUNCTIONS
@@ -196,4 +151,3 @@ export function logStageExecution<T>(
     }
   }
 }
-

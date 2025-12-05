@@ -1,5 +1,4 @@
 import OpenAI from 'openai';
-import { CrisisSeverity } from '@prisma/client';
 import type {
   PipelineContext,
   PipelineResult,
@@ -11,10 +10,17 @@ import type {
   TherapistView,
   ClientView,
   SessionSummaryOutput,
+  PreprocessedTranscript,
+  ExtractionOutput,
 } from './types';
 import { getModelConfig, isAIEnabled, calculateCost, LIMITS } from './config';
 import { AIError } from '@/lib/utils/errors';
 import type { CrisisCheckResult } from './schemas';
+
+// Import stage implementations
+import { preprocessTranscript } from './stages/preprocessing';
+import { classifyCrisis } from './stages/crisisClassifier';
+import { extractCanonicalPlan, createNewPlanFromExtraction } from './stages/canonicalExtraction';
 
 // =============================================================================
 // OPENAI CLIENT
@@ -50,10 +56,12 @@ export class TreatmentPlanPipeline {
   private errors: string[] = [];
   private onProgress?: (progress: PipelineProgress) => void;
   private aborted = false;
+  private openai: OpenAI;
 
   constructor(context: PipelineContext, onProgress?: (progress: PipelineProgress) => void) {
     this.context = context;
     this.onProgress = onProgress;
+    this.openai = getOpenAIClient();
   }
 
   /**
@@ -75,35 +83,48 @@ export class TreatmentPlanPipeline {
     try {
       // Stage 1: Preprocessing
       this.reportProgress('preprocessing', 0, 'Preparing transcript...');
-      const preprocessed = await this.runPreprocessing();
-      if (!preprocessed.success) {
-        return this.createErrorResult(`Preprocessing failed: ${preprocessed.error}`);
+      const preprocessResult = await this.runPreprocessing();
+      if (!preprocessResult.success || !preprocessResult.data) {
+        return this.createErrorResult(`Preprocessing failed: ${preprocessResult.error}`);
       }
       this.reportProgress('preprocessing', 100, 'Transcript prepared');
 
       // Stage 2: Crisis Check
       this.reportProgress('crisis_check', 0, 'Checking for safety concerns...');
-      const crisisResult = await this.runCrisisCheck(preprocessed.data!);
-      if (!crisisResult.success) {
+      const crisisResult = await this.runCrisisCheck(preprocessResult.data);
+      if (!crisisResult.success || !crisisResult.data) {
         return this.createErrorResult(`Crisis check failed: ${crisisResult.error}`);
+      }
+      if (crisisResult.tokenUsage) {
+        this.addTokenUsageInternal(crisisResult.tokenUsage);
       }
       this.reportProgress('crisis_check', 100, 'Safety check complete');
 
-      // Handle crisis detection
-      if (crisisResult.data?.shouldHalt) {
+      // Handle crisis detection - halt pipeline if necessary
+      if (crisisResult.data.shouldHalt) {
         return this.createCrisisResult(crisisResult.data);
       }
 
       // Stage 3: Canonical Extraction
       this.reportProgress('extraction', 0, 'Extracting clinical information...');
-      const extraction = await this.runExtraction(preprocessed.data!);
-      if (!extraction.success) {
-        return this.createErrorResult(`Extraction failed: ${extraction.error}`);
+      const extractionResult = await this.runExtraction(preprocessResult.data);
+      if (!extractionResult.success || !extractionResult.data) {
+        return this.createErrorResult(`Extraction failed: ${extractionResult.error}`);
+      }
+      if (extractionResult.tokenUsage) {
+        this.addTokenUsageInternal(extractionResult.tokenUsage);
+      }
+      // Add validation warnings
+      if (extractionResult.data.validationWarnings) {
+        this.warnings.push(...extractionResult.data.validationWarnings);
       }
       this.reportProgress('extraction', 100, 'Information extracted');
 
       // Stage 4: Build/Update Canonical Plan
-      const canonicalPlan = this.buildCanonicalPlan(extraction.data!);
+      const canonicalPlan = this.buildCanonicalPlan(
+        extractionResult.data.extraction,
+        extractionResult.data.mergedPlan
+      );
 
       // Stage 5: Generate Therapist View
       this.reportProgress('therapist_view', 0, 'Generating therapist view...');
@@ -136,7 +157,7 @@ export class TreatmentPlanPipeline {
         therapistView.data,
         clientView.data,
         summary.data,
-        crisisResult.data!
+        crisisResult.data
       );
       this.reportProgress('saving', 100, 'Plan saved');
 
@@ -146,8 +167,8 @@ export class TreatmentPlanPipeline {
         success: true,
         planId: saveResult.planId,
         versionNumber: saveResult.versionNumber,
-        crisisDetected: crisisResult.data!.isCrisis,
-        crisisSeverity: crisisResult.data!.severity,
+        crisisDetected: crisisResult.data.isCrisis,
+        crisisSeverity: crisisResult.data.severity,
         warnings: this.warnings,
         errors: this.errors,
         processingTime: Date.now() - startTime,
@@ -167,7 +188,7 @@ export class TreatmentPlanPipeline {
   }
 
   // ===========================================================================
-  // STAGE IMPLEMENTATIONS (Skeletons - to be implemented in later PRs)
+  // STAGE IMPLEMENTATIONS
   // ===========================================================================
 
   private validateTranscript(): boolean {
@@ -186,107 +207,98 @@ export class TreatmentPlanPipeline {
     return true;
   }
 
-  private async runPreprocessing(): Promise<StageResult<string>> {
-    // Skeleton - will be implemented in PR #8
-    const startTime = Date.now();
-    
-    // For now, just return the transcript as-is
-    return {
-      success: true,
-      data: this.context.transcript,
-      durationMs: Date.now() - startTime,
-    };
+  /**
+   * Stage 1: Preprocessing - Clean and structure transcript
+   */
+  private async runPreprocessing(): Promise<StageResult<PreprocessedTranscript>> {
+    return preprocessTranscript(this.context.transcript);
   }
 
-  private async runCrisisCheck(_processedTranscript: string): Promise<StageResult<CrisisCheckResult>> {
-    // Skeleton - will be implemented in PR #8
-    const startTime = Date.now();
-    
-    // Default to no crisis for skeleton
-    return {
-      success: true,
-      data: {
-        isCrisis: false,
-        severity: CrisisSeverity.NONE,
-        shouldHalt: false,
-        assessment: {
-          overallSeverity: CrisisSeverity.NONE,
-          confidence: 1,
-          indicators: [],
-          immediateRisk: false,
-          recommendedActions: [],
-          reasoning: 'Skeleton implementation - no crisis check performed',
-        },
-      },
-      durationMs: Date.now() - startTime,
-    };
+  /**
+   * Stage 2: Crisis Check - Detect safety concerns
+   */
+  private async runCrisisCheck(preprocessed: PreprocessedTranscript): Promise<StageResult<CrisisCheckResult>> {
+    // Use the cleaned/chunked transcript for crisis analysis
+    const transcriptText = preprocessed.chunks.map(c => c.text).join('\n\n');
+    return classifyCrisis(transcriptText, this.openai);
   }
 
-  private async runExtraction(_processedTranscript: string): Promise<StageResult<unknown>> {
-    // Skeleton - will be implemented in PR #9
-    const startTime = Date.now();
+  /**
+   * Stage 3: Extraction - Extract clinical information
+   */
+  private async runExtraction(preprocessed: PreprocessedTranscript): Promise<StageResult<{
+    extraction: ExtractionOutput;
+    mergedPlan?: CanonicalPlan;
+    isNewPlan: boolean;
+    validationWarnings: string[];
+  }>> {
+    const transcriptText = preprocessed.chunks.map(c => c.text).join('\n\n');
     
-    return {
-      success: true,
-      data: {
-        concerns: [],
-        impressions: [],
-        suggestedDiagnoses: [],
-        goals: [],
-        interventions: [],
-        strengths: [],
-        risks: [],
-        homework: [],
-      },
-      durationMs: Date.now() - startTime,
-    };
+    return extractCanonicalPlan({
+      transcript: transcriptText,
+      sessionId: this.context.sessionId,
+      sessionNumber: this.getSessionNumber(),
+      existingPlan: this.context.existingPlan,
+      preferences: this.context.preferences,
+    }, this.openai);
   }
 
-  private buildCanonicalPlan(_extractionData: unknown): CanonicalPlan {
-    // Skeleton - will be implemented in PR #9
-    const now = new Date().toISOString();
-    
-    // If there's an existing plan, use it as base
+  /**
+   * Build or use merged canonical plan
+   */
+  private buildCanonicalPlan(
+    extraction: ExtractionOutput,
+    mergedPlan?: CanonicalPlan
+  ): CanonicalPlan {
+    // If we have a merged plan from extraction, use it
+    if (mergedPlan) {
+      return mergedPlan;
+    }
+
+    // If there's an existing plan but no merge was done, create simple merge
     if (this.context.existingPlan) {
+      const now = new Date().toISOString();
       return {
         ...this.context.existingPlan,
         updatedAt: now,
         version: this.context.existingPlan.version + 1,
+        sessionReferences: [
+          ...this.context.existingPlan.sessionReferences,
+          {
+            sessionId: this.context.sessionId,
+            sessionNumber: this.getSessionNumber(),
+            date: now,
+            keyContributions: ['Session processed'],
+          },
+        ],
       };
     }
-    
-    // Create new skeleton plan
-    return {
-      clientId: this.context.clientId,
-      createdAt: now,
-      updatedAt: now,
-      version: 1,
-      presentingConcerns: [],
-      clinicalImpressions: [],
-      diagnoses: [],
-      goals: [],
-      interventions: [],
-      strengths: [],
-      riskFactors: [],
-      homework: [],
-      crisisAssessment: {
-        severity: CrisisSeverity.NONE,
-        lastAssessed: now,
-        safetyPlanInPlace: false,
-      },
-      sessionReferences: [{
-        sessionId: this.context.sessionId,
-        sessionNumber: 1,
-        date: now,
-        keyContributions: [],
-      }],
-    };
+
+    // Create new plan from extraction
+    return createNewPlanFromExtraction(
+      this.context.clientId,
+      this.context.sessionId,
+      extraction
+    );
   }
 
+  /**
+   * Get session number (from existing plan or default to 1)
+   */
+  private getSessionNumber(): number {
+    if (this.context.existingPlan) {
+      return this.context.existingPlan.sessionReferences.length + 1;
+    }
+    return 1;
+  }
+
+  /**
+   * Stage 5: Therapist View Generation (Skeleton - PR #10)
+   */
   private async runTherapistViewGeneration(_canonicalPlan: CanonicalPlan): Promise<StageResult<TherapistView>> {
-    // Skeleton - will be implemented in PR #10
     const startTime = Date.now();
     
+    // Skeleton - full implementation in PR #10
     return {
       success: true,
       data: {
@@ -325,10 +337,13 @@ export class TreatmentPlanPipeline {
     };
   }
 
+  /**
+   * Stage 6: Client View Generation (Skeleton - PR #10)
+   */
   private async runClientViewGeneration(_canonicalPlan: CanonicalPlan): Promise<StageResult<ClientView>> {
-    // Skeleton - will be implemented in PR #10
     const startTime = Date.now();
     
+    // Skeleton - full implementation in PR #10
     return {
       success: true,
       data: {
@@ -355,10 +370,13 @@ export class TreatmentPlanPipeline {
     };
   }
 
+  /**
+   * Stage 7: Summary Generation (Skeleton - PR #11)
+   */
   private async runSummaryGeneration(): Promise<StageResult<SessionSummaryOutput>> {
-    // Skeleton - will be implemented in PR #11
     const startTime = Date.now();
     
+    // Skeleton - full implementation in PR #11
     return {
       success: true,
       data: {
@@ -370,6 +388,9 @@ export class TreatmentPlanPipeline {
     };
   }
 
+  /**
+   * Stage 8: Save to Database (Skeleton - PR #12)
+   */
   private async savePlanToDatabase(
     _canonicalPlan: CanonicalPlan,
     _therapistView: TherapistView | undefined,
@@ -377,8 +398,7 @@ export class TreatmentPlanPipeline {
     _summary: SessionSummaryOutput | undefined,
     _crisisResult: CrisisCheckResult
   ): Promise<{ planId: string; versionNumber: number }> {
-    // Skeleton - will be implemented in PR #12
-    // For now, return dummy values
+    // Skeleton - full implementation in PR #12
     return {
       planId: `plan_${Date.now()}`,
       versionNumber: 1,
@@ -420,6 +440,13 @@ export class TreatmentPlanPipeline {
       processingTime: Date.now() - this.context.startTime,
       tokenUsage: this.tokenUsage,
     };
+  }
+
+  private addTokenUsageInternal(usage: TokenUsage): void {
+    this.tokenUsage.promptTokens += usage.promptTokens;
+    this.tokenUsage.completionTokens += usage.completionTokens;
+    this.tokenUsage.totalTokens = this.tokenUsage.promptTokens + this.tokenUsage.completionTokens;
+    this.tokenUsage.estimatedCost += usage.estimatedCost;
   }
 
   protected addTokenUsage(usage: { promptTokens: number; completionTokens: number }, model: string): void {
@@ -472,4 +499,3 @@ export async function runPipeline(
 // =============================================================================
 
 export { getModelConfig, isAIEnabled };
-

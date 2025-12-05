@@ -1,0 +1,251 @@
+{
+  "clientId": "client_abc123",
+  "createdAt": "2024-01-15T10:00:00.000Z",
+  "updatedAt": "2024-02-01T14:30:00.000Z",
+  "version": 3,
+  "presentingConcerns": [
+    {
+      "id": "concern_1705312800000_0_a1b2",
+      "description": "Generalized anxiety with excessive worry about work performance, relationships, and health outcomes",
+      "severity": "moderate",
+      "duration": "Approximately 2 years, worsening over past 6 months",
+      "impact": "Difficulty concentrating at work, sleep disturbance (4-5 hours/night), avoidance of social situations",
+      "sourceSessionIds": ["session_001", "session_002"]
+    },
+    {
+      "id": "concern_1705312800000_1_c3d4",
+      "description": "Low mood and anhedonia, particularly on weekends when not occupied with work",
+      "severity": "mild",
+      "duration": "3-4 months",
+      "impact": "Reduced engagement in previously enjoyed activities, social withdrawal from friends",
+      "sourceSessionIds": ["session_003"]
+    }
+  ],
+  "clinicalImpressions": [
+    {
+      "id": "impression_1705312800000_0_e5f6",
+      "observation": "Client demonstrates good insight into anxiety triggers but shows cognitive distortions including catastrophizing and mind-reading",
+      "category": "Cognitive",
+      "sourceSessionIds": ["session_001", "session_002"]
+    },
+    {
+      "id": "impression_1705312800000_1_g7h8",
+      "observation": "Client presents as articulate and engaged, maintains appropriate eye contact, affect congruent with content",
+      "category": "Behavioral",
+      "sourceSessionIds": ["session_001"]
+    },
+    {
+      "id": "impression_1705312800000_2_i9j0",
+      "observation": "Reports chronic muscle tension, particularly in shoulders and jaw, consistent with anxiety presentation",
+      "category": "Physiological",
+      "sourceSessionIds": ["session_002"]
+    },
+    {
+      "id": "impression_1705312800000_3_k1l2",
+      "observation": "Client expresses feelings of isolation despite having supportive family system",
+      "category": "Interpersonal",
+      "sourceSessionIds": ["session_003"]
+    }
+  ],
+  "diagnoses": [
+    {
+      "id": "diagnosis_1705312800000_0_m3n4",
+      "icdCode": "F41.1",
+      "name": "Generalized Anxiety Disorder",
+      "status": "provisional",
+      "notes": "Meets criteria for excessive worry, difficulty controlling worry, and associated symptoms (sleep disturbance, muscle tension, concentration difficulties) for >6 months. Will continue assessment."
+    },
+    {
+      "id": "diagnosis_1705312800000_1_o5p6",
+      "icdCode": "F32.0",
+      "name": "Major Depressive Episode, Mild",
+      "status": "rule_out",
+      "notes": "Some depressive symptoms present but may be secondary to anxiety. Monitor for worsening or persistence."
+    }
+  ],
+  "goals": [
+    {
+      "id": "goal_1705312800000_0_q7r8",
+      "type": "short_term",
+      "description": "Reduce frequency of anxiety episodes from daily to 3 or fewer per week",
+      "measurableOutcome": "Client self-report using anxiety tracking app; reduction in PHQ-9 scores by 25%",
+      "targetDate": "2024-03-15T00:00:00.000Z",
+      "status": "in_progress",
+      "progress": 40,
+      "interventionIds": ["intervention_1705312800000_0_s9t0", "intervention_1705312800000_1_u1v2"],
+      "sourceSessionIds": ["session_001", "session_002"]
+    },
+    {
+      "id": "goal_1705312800000_1_w3x4",
+      "type": "short_term",
+      "description": "Improve sleep quality to achieve 6-7 hours of restful sleep per night",
+      "measurableOutcome": "Sleep diary showing average of 6+ hours sleep with <30 min to fall asleep",
+      "targetDate": "2024-02-28T00:00:00.000Z",
+      "status": "in_progress",
+      "progress": 25,
+      "interventionIds": ["intervention_1705312800000_2_y5z6"],
+      "sourceSessionIds": ["session_002"]
+    },
+    {
+      "id": "goal_1705312800000_2_a7b8",
+      "type": "long_term",
+      "description": "Develop sustainable coping strategies for managing anxiety without avoidance",
+      "measurableOutcome": "Demonstrate use of at least 3 coping strategies in anxiety-provoking situations; GAD-7 score <10",
+      "targetDate": "2024-06-01T00:00:00.000Z",
+      "status": "in_progress",
+      "progress": 15,
+      "interventionIds": ["intervention_1705312800000_0_s9t0"],
+      "sourceSessionIds": ["session_001"]
+    },
+    {
+      "id": "goal_1705312800000_3_c9d0",
+      "type": "long_term",
+      "description": "Increase engagement in social activities and rebuild connection with friends",
+      "measurableOutcome": "Attend at least 2 social activities per month; report improved satisfaction with relationships",
+      "targetDate": "2024-05-01T00:00:00.000Z",
+      "status": "not_started",
+      "progress": 0,
+      "interventionIds": [],
+      "sourceSessionIds": ["session_003"]
+    }
+  ],
+  "interventions": [
+    {
+      "id": "intervention_1705312800000_0_s9t0",
+      "modality": "CBT",
+      "name": "Cognitive Restructuring",
+      "description": "Identify and challenge anxious automatic thoughts using thought records. Focus on catastrophizing and probability overestimation.",
+      "frequency": "Daily thought record practice; review in weekly sessions",
+      "rationale": "Evidence-based approach for addressing cognitive distortions characteristic of GAD"
+    },
+    {
+      "id": "intervention_1705312800000_1_u1v2",
+      "modality": "CBT",
+      "name": "Diaphragmatic Breathing",
+      "description": "4-7-8 breathing technique for acute anxiety management. Practice activating parasympathetic nervous system response.",
+      "frequency": "3x daily scheduled practice + use during anxiety episodes",
+      "rationale": "Physiological intervention to reduce somatic anxiety symptoms and interrupt anxiety escalation"
+    },
+    {
+      "id": "intervention_1705312800000_2_y5z6",
+      "modality": "Behavioral",
+      "name": "Sleep Hygiene Protocol",
+      "description": "Implement consistent sleep schedule, limit screen time 1 hour before bed, create relaxing bedtime routine, address worry time before bed.",
+      "frequency": "Daily implementation with weekly review",
+      "rationale": "Address sleep disturbance which exacerbates anxiety symptoms; improve overall functioning"
+    }
+  ],
+  "strengths": [
+    {
+      "id": "strength_1705312800000_0_e1f2",
+      "category": "personal",
+      "description": "High motivation for treatment and willingness to engage in homework assignments",
+      "sourceSessionIds": ["session_001"]
+    },
+    {
+      "id": "strength_1705312800000_1_g3h4",
+      "category": "personal",
+      "description": "Good insight into anxiety patterns and triggers",
+      "sourceSessionIds": ["session_001", "session_002"]
+    },
+    {
+      "id": "strength_1705312800000_2_i5j6",
+      "category": "social",
+      "description": "Supportive family system including partner and parents",
+      "sourceSessionIds": ["session_001"]
+    },
+    {
+      "id": "strength_1705312800000_3_k7l8",
+      "category": "environmental",
+      "description": "Stable employment with flexible schedule that accommodates therapy",
+      "sourceSessionIds": ["session_002"]
+    },
+    {
+      "id": "strength_1705312800000_4_m9n0",
+      "category": "coping",
+      "description": "History of successful stress management through exercise",
+      "sourceSessionIds": ["session_002"]
+    }
+  ],
+  "riskFactors": [
+    {
+      "id": "risk_1705312800000_0_o1p2",
+      "type": "other",
+      "description": "Work stress with upcoming project deadline may exacerbate symptoms",
+      "severity": "LOW",
+      "mitigatingFactors": ["Good workplace support", "Time-limited stressor", "Active coping engagement"],
+      "sourceSessionIds": ["session_002"]
+    }
+  ],
+  "homework": [
+    {
+      "id": "homework_1705312800000_0_q3r4",
+      "title": "Daily Thought Record",
+      "description": "Complete at least one thought record each day, documenting the situation, automatic thought, emotion, evidence for/against, and balanced thought.",
+      "rationale": "Build awareness of cognitive patterns and practice cognitive restructuring skills",
+      "goalIds": ["goal_1705312800000_0_q7r8"],
+      "status": "in_progress",
+      "dueDate": "2024-02-08T00:00:00.000Z"
+    },
+    {
+      "id": "homework_1705312800000_1_s5t6",
+      "title": "Breathing Practice Log",
+      "description": "Practice 4-7-8 breathing technique 3 times daily (morning, midday, evening) and log in app. Note any use during anxiety episodes.",
+      "rationale": "Develop automatic relaxation response through consistent practice",
+      "goalIds": ["goal_1705312800000_0_q7r8"],
+      "status": "assigned",
+      "dueDate": "2024-02-08T00:00:00.000Z"
+    },
+    {
+      "id": "homework_1705312800000_2_u7v8",
+      "title": "Sleep Diary",
+      "description": "Track sleep patterns including bedtime, wake time, estimated time to fall asleep, and sleep quality rating (1-10).",
+      "rationale": "Establish baseline and track progress on sleep goal",
+      "goalIds": ["goal_1705312800000_1_w3x4"],
+      "status": "in_progress"
+    }
+  ],
+  "crisisAssessment": {
+    "severity": "NONE",
+    "lastAssessed": "2024-02-01T14:30:00.000Z",
+    "indicators": [],
+    "safetyPlanInPlace": false,
+    "safetyPlanDetails": null
+  },
+  "sessionReferences": [
+    {
+      "sessionId": "session_001",
+      "sessionNumber": 1,
+      "date": "2024-01-15T10:00:00.000Z",
+      "keyContributions": [
+        "Completed intake assessment",
+        "Identified primary presenting concerns",
+        "Established initial treatment goals",
+        "Introduced cognitive model of anxiety"
+      ]
+    },
+    {
+      "sessionId": "session_002",
+      "sessionNumber": 2,
+      "date": "2024-01-22T10:00:00.000Z",
+      "keyContributions": [
+        "Taught diaphragmatic breathing technique",
+        "Introduced thought records",
+        "Addressed sleep difficulties",
+        "Assigned first homework tasks"
+      ]
+    },
+    {
+      "sessionId": "session_003",
+      "sessionNumber": 3,
+      "date": "2024-02-01T10:00:00.000Z",
+      "keyContributions": [
+        "Reviewed homework completion",
+        "Discussed social withdrawal",
+        "Explored mood symptoms",
+        "Updated progress on goals"
+      ]
+    }
+  ]
+}
+
