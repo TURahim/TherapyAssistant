@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
@@ -27,7 +27,7 @@ import { ChevronLeft, Calendar, Loader2, User } from 'lucide-react';
 import { toDateTimeInputValue } from '@/lib/utils/dates';
 
 interface PageProps {
-  params: Promise<{ clientId: string }>;
+  params: { clientId: string };
 }
 
 const sessionFormSchema = z.object({
@@ -39,7 +39,7 @@ const sessionFormSchema = z.object({
 type SessionFormValues = z.infer<typeof sessionFormSchema>;
 
 export default function NewSessionPage({ params }: PageProps) {
-  const { clientId } = use(params);
+  const { clientId } = params;
   const router = useRouter();
   const { toast } = useToast();
   const { client, isLoading, error } = useClient(clientId);
