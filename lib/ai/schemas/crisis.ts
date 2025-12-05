@@ -68,8 +68,8 @@ export const RISK_LEVELS = {
     action: 'flag',
     description: 'Minor concerns noted, monitor in future sessions',
   },
-  MODERATE: {
-    severity: 'MODERATE' as const,
+  MEDIUM: {
+    severity: 'MEDIUM' as const,
     action: 'alert',
     description: 'Significant concerns requiring therapist attention',
   },
@@ -93,11 +93,13 @@ export const CRISIS_KEYWORDS = {
   suicidal: [
     'kill myself',
     'end my life',
+    'ending my life',
     'suicide',
     'suicidal',
     'don\'t want to live',
+    'thinking about suicide',
     'better off dead',
-    'wish I was dead',
+    'wish i was dead',
     'want to die',
     'no reason to live',
     'end it all',
@@ -106,7 +108,10 @@ export const CRISIS_KEYWORDS = {
   ],
   selfHarm: [
     'cut myself',
+    'cutting myself',
+    'cutting again',
     'hurt myself',
+    'hurting myself',
     'self-harm',
     'self harm',
     'burning myself',
