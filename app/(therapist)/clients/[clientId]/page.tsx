@@ -1,6 +1,5 @@
 'use client';
 
-import { use } from 'react';
 import Link from 'next/link';
 import { useClient } from '@/lib/hooks/useClients';
 import { Button } from '@/components/ui/button';
@@ -23,11 +22,11 @@ import {
 } from 'lucide-react';
 
 interface PageProps {
-  params: Promise<{ clientId: string }>;
+  params: { clientId: string };
 }
 
 export default function ClientDetailPage({ params }: PageProps) {
-  const { clientId } = use(params);
+  const { clientId } = params;
   const { client, isLoading, error, refresh } = useClient(clientId);
 
   if (isLoading) {
