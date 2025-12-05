@@ -33,6 +33,11 @@ export const prismaMock = {
     create: vi.fn(),
     update: vi.fn(),
   },
+  therapist: {
+    findUnique: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+  },
   mediaUpload: {
     findUnique: vi.fn(),
     findMany: vi.fn(),
