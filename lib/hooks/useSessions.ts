@@ -160,6 +160,9 @@ interface SessionDetail {
     clientSummary: string;
     keyTopics: string[];
     moodAssessment?: string | null;
+    isEdited?: boolean;
+    editedAt?: string | null;
+    generatedAt?: string | null;
   } | null;
   mediaUploads: Array<{
     id: string;

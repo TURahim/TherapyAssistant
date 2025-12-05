@@ -50,6 +50,29 @@ export {
   type ExtractionResult,
 } from './canonicalExtraction';
 
+// Stage 4A: Therapist View Generation
+export {
+  generateTherapistView,
+  formatRiskLevel,
+  formatGoalStatus,
+  formatDiagnosisStatus,
+  determinePlanStatus,
+  generateProgressSummary,
+  type TherapistViewInput,
+  type TherapistViewResult,
+} from './therapistViewGen';
+
+// Stage 4B: Client View Generation
+export {
+  generateClientView,
+  validateClientViewReadingLevel,
+  simplifyClientView,
+  generateGreeting,
+  getCelebrationMessage,
+  type ClientViewInput,
+  type ClientViewResult,
+} from './clientViewGen';
+
 // =============================================================================
 // STAGE TYPES
 // =============================================================================

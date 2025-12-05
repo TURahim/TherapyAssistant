@@ -29,6 +29,10 @@ export interface PipelineContext {
   existingPlan?: CanonicalPlan | null;
   preferences?: TherapistPreferencesInput;
   startTime: number;
+  /** Full client name for therapist view */
+  clientName?: string;
+  /** First name only for client view (more personal) */
+  clientFirstName?: string;
 }
 
 /**

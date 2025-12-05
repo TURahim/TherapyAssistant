@@ -21,6 +21,8 @@ import type { CrisisCheckResult } from './schemas';
 import { preprocessTranscript } from './stages/preprocessing';
 import { classifyCrisis } from './stages/crisisClassifier';
 import { extractCanonicalPlan, createNewPlanFromExtraction } from './stages/canonicalExtraction';
+import { generateTherapistView } from './stages/therapistViewGen';
+import { generateClientView } from './stages/clientViewGen';
 
 // =============================================================================
 // OPENAI CLIENT
@@ -293,80 +295,81 @@ export class TreatmentPlanPipeline {
   }
 
   /**
-   * Stage 5: Therapist View Generation (Skeleton - PR #10)
+   * Stage 5: Therapist View Generation
    */
-  private async runTherapistViewGeneration(_canonicalPlan: CanonicalPlan): Promise<StageResult<TherapistView>> {
-    const startTime = Date.now();
-    
-    // Skeleton - full implementation in PR #10
-    return {
-      success: true,
-      data: {
-        header: {
-          clientName: 'Client',
-          planStatus: 'Draft',
-          lastUpdated: new Date().toISOString(),
-          version: 1,
-        },
-        clinicalSummary: {
-          presentingProblems: 'To be generated',
-          diagnosticFormulation: 'To be generated',
-          treatmentRationale: 'To be generated',
-        },
-        diagnoses: {
-          secondary: [],
-        },
-        treatmentGoals: {
-          shortTerm: [],
-          longTerm: [],
-        },
-        interventionPlan: [],
-        riskAssessment: {
-          currentLevel: 'None',
-          factors: [],
-        },
-        progressNotes: {
-          summary: 'To be generated',
-          recentChanges: [],
-          nextSteps: [],
-        },
-        homework: [],
-        sessionHistory: [],
+  private async runTherapistViewGeneration(canonicalPlan: CanonicalPlan): Promise<StageResult<TherapistView>> {
+    const result = await generateTherapistView(
+      {
+        canonicalPlan,
+        clientName: this.context.clientName || 'Client',
+        includeIcdCodes: this.context.preferences?.includeIcdCodes ?? true,
+        languageLevel: this.context.preferences?.languageLevel ?? 'professional',
+        preferences: this.context.preferences,
       },
-      durationMs: Date.now() - startTime,
+      this.openai
+    );
+
+    if (result.success && result.data) {
+      if (result.tokenUsage) {
+        this.addTokenUsageInternal(result.tokenUsage);
+      }
+      return {
+        success: true,
+        data: result.data.view,
+        durationMs: result.durationMs,
+        tokenUsage: result.tokenUsage,
+      };
+    }
+
+    return {
+      success: false,
+      error: result.error || 'Therapist view generation failed',
+      durationMs: result.durationMs,
+      tokenUsage: result.tokenUsage,
     };
   }
 
   /**
-   * Stage 6: Client View Generation (Skeleton - PR #10)
+   * Stage 6: Client View Generation
    */
-  private async runClientViewGeneration(_canonicalPlan: CanonicalPlan): Promise<StageResult<ClientView>> {
-    const startTime = Date.now();
-    
-    // Skeleton - full implementation in PR #10
-    return {
-      success: true,
-      data: {
-        header: {
-          greeting: 'Welcome!',
-          lastUpdated: new Date().toISOString(),
-        },
-        overview: {
-          whatWeAreWorkingOn: 'Your treatment plan is being prepared.',
-          whyThisMatters: 'This will help guide our work together.',
-          yourStrengths: ['You are taking steps to improve your wellbeing'],
-        },
-        goals: [],
-        nextSteps: [{
-          step: 'Continue with therapy sessions',
-          why: 'Consistent engagement supports progress',
-        }],
-        homework: [],
-        encouragement: {
-          progressMessage: 'Thank you for your commitment to this process.',
-        },
+  private async runClientViewGeneration(canonicalPlan: CanonicalPlan): Promise<StageResult<ClientView>> {
+    const result = await generateClientView(
+      {
+        canonicalPlan,
+        clientFirstName: this.context.clientFirstName || 'there',
+        targetReadingLevel: 6,
+        tone: 'warm',
       },
-      durationMs: Date.now() - startTime,
+      this.openai
+    );
+
+    if (result.success && result.data) {
+      if (result.tokenUsage) {
+        this.addTokenUsageInternal(result.tokenUsage);
+      }
+      
+      // Log reading level validation in development
+      if (process.env.NODE_ENV === 'development' && result.data.readingLevelValidation) {
+        const validation = result.data.readingLevelValidation;
+        console.log(`[Pipeline] Client view reading level: ${validation.gradeLevel} (valid: ${validation.isValid})`);
+        if (!validation.isValid) {
+          console.warn('[Pipeline] Reading level issues:', validation.issues);
+        }
+      }
+      
+      return {
+        success: true,
+        data: result.data.view,
+        durationMs: result.durationMs,
+        tokenUsage: result.tokenUsage,
+      };
+    }
+
+    return {
+      success: false,
+      error: result.error || 'Client view generation failed',
+      durationMs: result.durationMs,
+      tokenUsage: result.tokenUsage,
     };
   }
 

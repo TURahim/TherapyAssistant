@@ -4,6 +4,12 @@
 
 A full-stack application that transforms therapy session transcripts into personalized, AI-generated treatment plans with dual views for therapists and clients.
 
+## 📌 Latest Progress
+- PR #16 (Homework Tracking) completed: client homework UI, homework service/API, status updates.
+- PR #15 (Client Portal) completed: client-facing home/plan/homework pages and components.
+- PR #14 (Session Summaries) completed: dual-tone therapist/client summaries with edit, regenerate, and approval flow.
+- PR #13 (Plan Versioning & Diff) completed: version history, diff viewer, and restore.
+
 ## 🎯 Overview
 
 Tava Health is a digital mental health platform that uses AI to streamline the creation and management of treatment plans. The application:
@@ -28,8 +34,9 @@ Tava Health is a digital mental health platform that uses AI to streamline the c
 - 📊 Treatment plan versioning & history
 - 🔄 Plan updates from new sessions
 - ⚠️ Crisis language detection
-- 📋 Session summaries
-- ✅ Homework tracking
+- 📋 Session summaries (therapist + client tone, editable)
+- ✅ Homework tracking (client completion + therapist sync)
+- 🧭 Client portal (plan, goals, homework)
 - ⚙️ Therapist preferences (modality, style)
 
 ## 🛠️ Tech Stack

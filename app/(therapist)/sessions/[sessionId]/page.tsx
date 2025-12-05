@@ -1,8 +1,10 @@
 'use client';
 
-import { use } from 'react';
+import { use, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useSession } from '@/lib/hooks/useSessions';
+import { useGeneration } from '@/lib/hooks/useGeneration';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,6 +12,10 @@ import { FullPageSpinner } from '@/components/shared/LoadingSpinner';
 import { ErrorFallback } from '@/components/shared/ErrorBoundary';
 import { SessionUploader } from '@/components/therapist/SessionUploader';
 import { TranscriptPreview } from '@/components/therapist/TranscriptPreview';
+import { GenerationProgress } from '@/components/therapist/GenerationProgress';
+import { CrisisModal } from '@/components/therapist/CrisisModal';
+import { SessionSummaryCard } from '@/components/therapist/SessionSummaryCard';
+import { SessionSummaryEditor } from '@/components/therapist/SessionSummaryEditor';
 import { formatDate, formatTime, formatDuration } from '@/lib/utils/dates';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -24,6 +30,7 @@ import {
   MessageSquare,
   Sparkles,
   Edit,
+  Wand2,
 } from 'lucide-react';
 
 interface PageProps {
@@ -60,6 +67,12 @@ const crisisConfig = {
 export default function SessionDetailPage({ params }: PageProps) {
   const { sessionId } = use(params);
   const { toast } = useToast();
+  const router = useRouter();
+  const [showCrisisModal, setShowCrisisModal] = useState(false);
+  const [isRegeneratingSummary, setIsRegeneratingSummary] = useState(false);
+  const [summaryEditorOpen, setSummaryEditorOpen] = useState(false);
+  const [summaryEditorType, setSummaryEditorType] = useState<'therapist' | 'client'>('therapist');
+  
   const {
     session,
     isLoading,
@@ -69,6 +82,40 @@ export default function SessionDetailPage({ params }: PageProps) {
     completeSession,
     cancelSession,
   } = useSession(sessionId);
+
+  const {
+    isGenerating,
+    progress,
+    result,
+    crisisInfo,
+    generate,
+    reset: resetGeneration,
+    abort: abortGeneration,
+  } = useGeneration({
+    onComplete: (result) => {
+      toast({
+        title: 'Plan Generated',
+        description: `Treatment plan v${result.versionNumber} has been created successfully.`,
+      });
+      refresh();
+      if (result.planId) {
+        // Navigate to plan after a short delay
+        setTimeout(() => {
+          router.push(`/plans/${result.planId}`);
+        }, 1500);
+      }
+    },
+    onCrisisDetected: () => {
+      setShowCrisisModal(true);
+    },
+    onError: (error) => {
+      toast({
+        title: 'Generation Failed',
+        description: error,
+        variant: 'destructive',
+      });
+    },
+  });
 
   const handleStart = async () => {
     const success = await startSession();
@@ -91,13 +138,84 @@ export default function SessionDetailPage({ params }: PageProps) {
     }
   };
 
-  const handleGeneratePlan = () => {
-    // Will be implemented in PR #11
-    toast({
-      title: 'Coming soon',
-      description: 'Treatment plan generation will be available in a future update.',
-    });
+  const handleGeneratePlan = async () => {
+    if (!session?.transcript) {
+      toast({
+        title: 'No transcript',
+        description: 'Please add a transcript before generating a treatment plan.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    await generate(sessionId, session.transcript, session.latestPlanId || undefined);
   };
+
+  const handleCrisisAcknowledged = () => {
+    setShowCrisisModal(false);
+    refresh();
+  };
+
+  // Summary handlers
+  const handleRegenerateSummary = useCallback(async (type: 'therapist' | 'client' | 'both') => {
+    setIsRegeneratingSummary(true);
+    try {
+      const response = await fetch(`/api/sessions/${sessionId}/summary`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate summary');
+      }
+
+      toast({
+        title: 'Summary Generated',
+        description: type === 'both' 
+          ? 'Both summaries have been generated.' 
+          : `${type === 'therapist' ? 'Therapist' : 'Client'} summary has been regenerated.`,
+      });
+      refresh();
+    } catch (err) {
+      toast({
+        title: 'Generation Failed',
+        description: err instanceof Error ? err.message : 'Failed to generate summary',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsRegeneratingSummary(false);
+    }
+  }, [sessionId, toast, refresh]);
+
+  const handleEditSummary = useCallback((type: 'therapist' | 'client') => {
+    setSummaryEditorType(type);
+    setSummaryEditorOpen(true);
+  }, []);
+
+  const handleSaveSummary = useCallback(async (summary: string, keyTopics?: string[]) => {
+    const response = await fetch(`/api/sessions/${sessionId}/summary`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: summaryEditorType,
+        summary,
+        keyTopics,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to save summary');
+    }
+
+    toast({
+      title: 'Summary Saved',
+      description: `${summaryEditorType === 'therapist' ? 'Therapist' : 'Client'} summary has been updated.`,
+    });
+    refresh();
+  }, [sessionId, summaryEditorType, toast, refresh]);
 
   if (isLoading) {
     return <FullPageSpinner label="Loading session..." />;
@@ -232,6 +350,34 @@ export default function SessionDetailPage({ params }: PageProps) {
         </Card>
       </div>
 
+      {/* Generation Progress */}
+      {(isGenerating || progress.stage !== 'idle') && (
+        <GenerationProgress
+          progress={progress}
+          onCancel={abortGeneration}
+        />
+      )}
+
+      {/* Generate Plan Button */}
+      {session.transcript && !isGenerating && progress.stage === 'idle' && !session.hasGeneratedPlan && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="font-semibold">Ready to Generate Treatment Plan</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  The AI will analyze the transcript and generate a comprehensive treatment plan.
+                </p>
+              </div>
+              <Button onClick={handleGeneratePlan} size="lg">
+                <Wand2 className="h-4 w-4 mr-2" />
+                Generate Plan
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Tabs */}
       <Tabs defaultValue={session.transcript ? 'transcript' : 'upload'} className="space-y-4">
         <TabsList>
@@ -245,7 +391,7 @@ export default function SessionDetailPage({ params }: PageProps) {
               View Transcript
             </TabsTrigger>
           )}
-          {session.summary && (
+          {session.transcript && (
             <TabsTrigger value="summary">
               <FileText className="h-4 w-4 mr-2" />
               Summary
@@ -263,8 +409,8 @@ export default function SessionDetailPage({ params }: PageProps) {
             sessionId={sessionId}
             existingTranscript={session.transcript}
             onTranscriptSaved={refresh}
-            onGeneratePlan={session.transcript ? handleGeneratePlan : undefined}
-            disabled={session.status === 'CANCELLED'}
+            onGeneratePlan={session.transcript && !isGenerating ? handleGeneratePlan : undefined}
+            disabled={session.status === 'CANCELLED' || isGenerating}
           />
         </TabsContent>
 
@@ -276,51 +422,21 @@ export default function SessionDetailPage({ params }: PageProps) {
         )}
 
         {/* Summary Tab */}
-        {session.summary && (
-          <TabsContent value="summary">
-            <div className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Therapist Summary</CardTitle>
-                  <CardDescription>Clinical summary for your records</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="whitespace-pre-wrap">{session.summary.therapistSummary}</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Client Summary</CardTitle>
-                  <CardDescription>Friendly summary shared with client</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="whitespace-pre-wrap">{session.summary.clientSummary}</p>
-                </CardContent>
-              </Card>
-
-              {session.summary.keyTopics && session.summary.keyTopics.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Key Topics</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-wrap gap-2">
-                      {session.summary.keyTopics.map((topic, i) => (
-                        <span
-                          key={i}
-                          className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary"
-                        >
-                          {topic}
-                        </span>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </TabsContent>
-        )}
+        <TabsContent value="summary">
+          <SessionSummaryCard
+            sessionId={sessionId}
+            sessionNumber={session.sessionNumber}
+            therapistSummary={session.summary?.therapistSummary || null}
+            clientSummary={session.summary?.clientSummary || null}
+            keyTopics={session.summary?.keyTopics || []}
+            isEdited={session.summary?.isEdited || false}
+            editedAt={session.summary?.editedAt ? new Date(session.summary.editedAt) : null}
+            generatedAt={session.summary?.generatedAt ? new Date(session.summary.generatedAt) : null}
+            onRegenerate={handleRegenerateSummary}
+            onEdit={handleEditSummary}
+            isRegenerating={isRegeneratingSummary}
+          />
+        </TabsContent>
 
         {/* Notes Tab */}
         <TabsContent value="notes">
@@ -339,6 +455,51 @@ export default function SessionDetailPage({ params }: PageProps) {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Crisis Modal */}
+      {crisisInfo && (
+        <CrisisModal
+          isOpen={showCrisisModal}
+          onClose={() => setShowCrisisModal(false)}
+          severity={crisisInfo.severity}
+          indicators={crisisInfo.indicators || []}
+          recommendedActions={crisisInfo.recommendedActions}
+          onAcknowledge={(notes) => {
+            console.log('Crisis acknowledged with notes:', notes);
+            handleCrisisAcknowledged();
+          }}
+          clientName={session.clientName}
+        />
+      )}
+
+      {/* Summary Editor Modal */}
+      {session.summary && (
+        <SessionSummaryEditor
+          isOpen={summaryEditorOpen}
+          onClose={() => setSummaryEditorOpen(false)}
+          type={summaryEditorType}
+          sessionNumber={session.sessionNumber}
+          initialSummary={
+            summaryEditorType === 'therapist'
+              ? session.summary.therapistSummary
+              : session.summary.clientSummary
+          }
+          initialKeyTopics={session.summary.keyTopics}
+          onSave={handleSaveSummary}
+          onRegenerate={async () => {
+            await handleRegenerateSummary(summaryEditorType);
+            // Return the new summary text
+            const response = await fetch(`/api/sessions/${sessionId}/summary`);
+            if (response.ok) {
+              const data = await response.json();
+              return summaryEditorType === 'therapist'
+                ? data.summary?.therapistSummary || ''
+                : data.summary?.clientSummary || '';
+            }
+            return '';
+          }}
+        />
+      )}
     </div>
   );
 }
