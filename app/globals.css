@@ -2,26 +2,140 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-}
-
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+}
+
+@layer base {
+  :root {
+    /* Calm, professional palette with teal/sage accents */
+    --background: 150 20% 99%;
+    --foreground: 200 15% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 200 15% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 200 15% 15%;
+    
+    /* Primary: Teal - calming, therapeutic */
+    --primary: 168 65% 38%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Secondary: Soft sage */
+    --secondary: 150 15% 95%;
+    --secondary-foreground: 168 65% 25%;
+    
+    /* Muted: Gentle gray-green */
+    --muted: 150 10% 95%;
+    --muted-foreground: 200 10% 45%;
+    
+    /* Accent: Warm amber for highlights */
+    --accent: 38 70% 92%;
+    --accent-foreground: 38 70% 30%;
+    
+    /* Destructive: Soft coral for warnings */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 150 15% 90%;
+    --input: 150 15% 90%;
+    --ring: 168 65% 38%;
+    
+    /* Chart colors */
+    --chart-1: 168 65% 45%;
+    --chart-2: 150 45% 50%;
+    --chart-3: 38 70% 55%;
+    --chart-4: 200 50% 50%;
+    --chart-5: 280 45% 55%;
+    
+    --radius: 0.625rem;
+  }
+
+  .dark {
+    --background: 200 20% 8%;
+    --foreground: 150 15% 95%;
+    --card: 200 20% 10%;
+    --card-foreground: 150 15% 95%;
+    --popover: 200 20% 10%;
+    --popover-foreground: 150 15% 95%;
+    
+    /* Primary: Teal - lighter for dark mode */
+    --primary: 168 55% 50%;
+    --primary-foreground: 200 20% 8%;
+    
+    /* Secondary */
+    --secondary: 200 15% 15%;
+    --secondary-foreground: 150 15% 90%;
+    
+    /* Muted */
+    --muted: 200 15% 15%;
+    --muted-foreground: 150 10% 60%;
+    
+    /* Accent */
+    --accent: 38 50% 20%;
+    --accent-foreground: 38 70% 80%;
+    
+    /* Destructive */
+    --destructive: 0 62% 40%;
+    --destructive-foreground: 0 0% 98%;
+    
+    --border: 200 15% 18%;
+    --input: 200 15% 18%;
+    --ring: 168 55% 50%;
+    
+    /* Chart colors - dark mode */
+    --chart-1: 168 55% 55%;
+    --chart-2: 150 45% 55%;
+    --chart-3: 38 60% 60%;
+    --chart-4: 200 50% 55%;
+    --chart-5: 280 45% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
+  }
+}
+
+/* Custom scrollbar for a polished look */
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 4px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.5);
+  }
+
+  /* Safe area for mobile devices with notches */
+  .safe-area-pb {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  .safe-area-pt {
+    padding-top: env(safe-area-inset-top, 0);
   }
 }

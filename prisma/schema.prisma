@@ -1,0 +1,431 @@
+// Tava Health: AI-Assisted Treatment Plans
+// Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum UserRole {
+  THERAPIST
+  CLIENT
+  ADMIN
+}
+
+enum SessionStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PlanStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum CrisisSeverity {
+  NONE
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum HomeworkStatus {
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
+}
+
+enum MediaType {
+  AUDIO
+  VIDEO
+  TRANSCRIPT
+}
+
+enum AuditAction {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  GENERATE_PLAN
+  EXPORT
+}
+
+enum TherapeuticModality {
+  CBT        // Cognitive Behavioral Therapy
+  DBT        // Dialectical Behavior Therapy
+  ACT        // Acceptance and Commitment Therapy
+  EMDR       // Eye Movement Desensitization and Reprocessing
+  MI         // Motivational Interviewing
+  PSYCHODYNAMIC
+  HUMANISTIC
+  SOLUTION_FOCUSED
+  NARRATIVE
+  OTHER
+}
+
+// =============================================================================
+// USER & AUTHENTICATION
+// =============================================================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  firstName     String
+  lastName      String
+  role          UserRole
+  isActive      Boolean   @default(true)
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  therapist  Therapist?
+  client     Client?
+  auditLogs  AuditLog[]
+
+  @@index([email])
+  @@index([role])
+}
+
+// =============================================================================
+// THERAPIST
+// =============================================================================
+
+model Therapist {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  licenseNumber   String?
+  licenseState    String?
+  specializations String[] // Array of specialization areas
+  bio             String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  user           User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  preferences    TherapistPreferences?
+  fewShotExamples FewShotExample[]
+  clients        Client[]
+  sessions       Session[]
+
+  @@index([userId])
+}
+
+model TherapistPreferences {
+  id                    String               @id @default(cuid())
+  therapistId           String               @unique
+  preferredModalities   TherapeuticModality[]
+  defaultSessionLength  Int                  @default(50) // minutes
+  preferLanguageLevel   String               @default("professional") // professional, conversational, simple
+  includeIcdCodes       Boolean              @default(true)
+  autoGenerateSummary   Boolean              @default(true)
+  crisisAlertThreshold  CrisisSeverity       @default(MEDIUM)
+  customInstructions    String?              // Additional AI prompting instructions
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  // Relations
+  therapist Therapist @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+
+  @@index([therapistId])
+}
+
+model FewShotExample {
+  id           String   @id @default(cuid())
+  therapistId  String
+  name         String   // User-friendly name for this example
+  description  String?
+  inputSample  String   @db.Text // Sample transcript excerpt
+  outputSample Json     // Expected output format
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  therapist Therapist @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+
+  @@index([therapistId])
+  @@index([isActive])
+}
+
+// =============================================================================
+// CLIENT
+// =============================================================================
+
+model Client {
+  id                String    @id @default(cuid())
+  userId            String    @unique
+  therapistId       String
+  preferredName     String?
+  dateOfBirth       DateTime?
+  pronouns          String?
+  emergencyContact  String?
+  emergencyPhone    String?
+  intakeDate        DateTime  @default(now())
+  isActive          Boolean   @default(true)
+  notes             String?   @db.Text
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  therapist      Therapist       @relation(fields: [therapistId], references: [id], onDelete: Restrict)
+  sessions       Session[]
+  treatmentPlans TreatmentPlan[]
+
+  @@index([userId])
+  @@index([therapistId])
+  @@index([isActive])
+}
+
+// =============================================================================
+// SESSION
+// =============================================================================
+
+model Session {
+  id              String        @id @default(cuid())
+  clientId        String
+  therapistId     String
+  sessionNumber   Int           // Sequential session number for this client
+  scheduledAt     DateTime
+  startedAt       DateTime?
+  endedAt         DateTime?
+  status          SessionStatus @default(SCHEDULED)
+  durationMinutes Int?
+  transcript      String?       @db.Text
+  transcriptRaw   String?       @db.Text // Original unprocessed transcript
+  notes           String?       @db.Text // Therapist's private notes
+  crisisSeverity  CrisisSeverity @default(NONE)
+  crisisIndicators Json?        // Detected crisis indicators from AI
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  client         Client           @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  therapist      Therapist        @relation(fields: [therapistId], references: [id], onDelete: Restrict)
+  mediaUploads   MediaUpload[]
+  summary        SessionSummary?
+  planVersions   TreatmentPlanVersion[] // Versions created from this session
+
+  @@index([clientId])
+  @@index([therapistId])
+  @@index([status])
+  @@index([scheduledAt])
+}
+
+model MediaUpload {
+  id             String    @id @default(cuid())
+  sessionId      String
+  mediaType      MediaType
+  fileName       String
+  fileSize       Int       // bytes
+  mimeType       String
+  storagePath    String    // Path in storage (S3, etc.)
+  storageUrl     String?   // Presigned URL (temporary)
+  durationSeconds Int?     // For audio/video
+  transcriptText String?   @db.Text // Transcription result
+  transcribedAt  DateTime?
+  expiresAt      DateTime? // For auto-deletion
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([mediaType])
+  @@index([expiresAt])
+}
+
+model SessionSummary {
+  id                  String   @id @default(cuid())
+  sessionId           String   @unique
+  therapistSummary    String   @db.Text // Clinical summary for therapist
+  clientSummary       String   @db.Text // Friendly summary for client
+  keyTopics           String[] // Main topics discussed
+  progressNotes       String?  @db.Text
+  moodAssessment      String?
+  isEdited            Boolean  @default(false)
+  editedAt            DateTime?
+  generatedAt         DateTime @default(now())
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Relations
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+}
+
+// =============================================================================
+// TREATMENT PLAN
+// =============================================================================
+
+model TreatmentPlan {
+  id              String     @id @default(cuid())
+  clientId        String
+  status          PlanStatus @default(DRAFT)
+  currentVersion  Int        @default(1)
+  isLocked        Boolean    @default(false) // Prevent edits during generation
+  
+  // Canonical Plan Data (source of truth)
+  canonicalPlan   Json       // Structured canonical plan data
+  
+  // Rendered Views (generated from canonical)
+  therapistView   Json       // Therapist-facing rendered plan
+  clientView      Json       // Client-facing rendered plan
+  
+  // Metadata
+  lastGeneratedAt DateTime?
+  publishedAt     DateTime?  // When client view was shared
+  archivedAt      DateTime?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  // Relations
+  client      Client                 @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  versions    TreatmentPlanVersion[]
+  edits       PlanEdit[]
+  homework    Homework[]
+  progress    ProgressEntry[]
+
+  @@index([clientId])
+  @@index([status])
+}
+
+model TreatmentPlanVersion {
+  id              String   @id @default(cuid())
+  planId          String
+  versionNumber   Int
+  sessionId       String?  // Session that triggered this version (if any)
+  
+  // Snapshot of plan at this version
+  canonicalPlan   Json
+  therapistView   Json
+  clientView      Json
+  
+  // Change tracking
+  changeType      String   // 'initial', 'session_update', 'manual_edit', 'restore'
+  changeSummary   String?  @db.Text // Human-readable summary of changes
+  diffFromPrevious Json?   // Structured diff from previous version
+  
+  // Metadata
+  createdBy       String   // User ID who created this version
+  createdAt       DateTime @default(now())
+
+  // Relations
+  plan    TreatmentPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  session Session?      @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@unique([planId, versionNumber])
+  @@index([planId])
+  @@index([sessionId])
+  @@index([createdAt])
+}
+
+model PlanEdit {
+  id          String   @id @default(cuid())
+  planId      String
+  userId      String   // Who made the edit
+  section     String   // Which section was edited
+  fieldPath   String   // JSON path to edited field
+  oldValue    Json?    // Previous value
+  newValue    Json     // New value
+  editReason  String?  // Optional reason for edit
+  createdAt   DateTime @default(now())
+
+  // Relations
+  plan TreatmentPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([planId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// =============================================================================
+// HOMEWORK & PROGRESS
+// =============================================================================
+
+model Homework {
+  id              String         @id @default(cuid())
+  planId          String
+  title           String
+  description     String         @db.Text
+  instructions    String?        @db.Text
+  dueDate         DateTime?
+  status          HomeworkStatus @default(ASSIGNED)
+  completedAt     DateTime?
+  clientNotes     String?        @db.Text // Client's notes on completion
+  therapistNotes  String?        @db.Text // Therapist feedback
+  order           Int            @default(0) // Display order
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  // Relations
+  plan TreatmentPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([planId])
+  @@index([status])
+  @@index([dueDate])
+}
+
+model ProgressEntry {
+  id          String   @id @default(cuid())
+  planId      String
+  goalId      String   // Reference to goal in canonical plan
+  rating      Int?     // Progress rating (e.g., 1-10)
+  notes       String?  @db.Text
+  recordedBy  String   // 'client' or 'therapist'
+  recordedAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  // Relations
+  plan TreatmentPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([planId])
+  @@index([goalId])
+  @@index([recordedAt])
+}
+
+// =============================================================================
+// AUDIT LOG
+// =============================================================================
+
+model AuditLog {
+  id          String      @id @default(cuid())
+  userId      String?     // Null for system actions
+  action      AuditAction
+  entityType  String      // 'User', 'Client', 'Session', 'TreatmentPlan', etc.
+  entityId    String?
+  metadata    Json?       // Additional context
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime    @default(now())
+
+  // Relations
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([entityType])
+  @@index([createdAt])
+}
+

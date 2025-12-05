@@ -8,6 +8,8 @@
 
 # testing
 /coverage
+/playwright-report
+/test-results
 
 # next.js
 /.next/
@@ -19,6 +21,8 @@
 # misc
 .DS_Store
 *.pem
+.idea
+.vscode
 
 # debug
 npm-debug.log*
@@ -26,7 +30,9 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
+.env
 .env*.local
+.env.local
 
 # vercel
 .vercel
@@ -34,3 +40,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# prisma
+/prisma/*.db
+/prisma/*.db-journal
+
+# uploads (local development)
+/uploads
+
+# editor
+*.swp
+*.swo
