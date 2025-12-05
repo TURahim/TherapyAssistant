@@ -272,6 +272,8 @@ export async function generatePlan(
         languageLevel: therapist.preferences.preferLanguageLevel as 'professional' | 'conversational' | 'simple',
         includeIcdCodes: therapist.preferences.includeIcdCodes,
         customInstructions: therapist.preferences.customInstructions || undefined,
+        targetReadingLevel: null,
+        includePsychoeducation: undefined,
       };
     }
 

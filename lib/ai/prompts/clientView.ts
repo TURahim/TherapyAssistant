@@ -67,6 +67,11 @@ export interface ClientViewPromptParams {
   clientFirstName: string;
   targetReadingLevel?: number;
   tone?: 'warm' | 'encouraging' | 'matter-of-fact';
+  preferences?: {
+    targetReadingLevel?: number | null;
+    tone?: string | null;
+    includePsychoeducation?: boolean;
+  };
 }
 
 /**
@@ -78,14 +83,18 @@ export function getClientViewPrompt(params: ClientViewPromptParams): string {
     clientFirstName,
     targetReadingLevel = READING_LEVEL.targetGrade,
     tone = 'warm',
+    preferences,
   } = params;
+
+  const resolvedReadingLevel = preferences?.targetReadingLevel ?? targetReadingLevel;
+  const resolvedTone = (preferences?.tone as ClientViewPromptParams['tone']) || tone;
 
   let prompt = `## Task: Generate Client-Friendly Treatment Plan View
 
 ### Client Information
 - First Name: ${clientFirstName}
-- Target Reading Level: ${targetReadingLevel}th grade
-- Tone: ${getToneDescription(tone)}
+- Target Reading Level: ${resolvedReadingLevel}th grade
+- Tone: ${getToneDescription(resolvedTone)}
 
 `;
 

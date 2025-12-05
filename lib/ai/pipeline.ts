@@ -333,12 +333,28 @@ export class TreatmentPlanPipeline {
    * Stage 6: Client View Generation
    */
   private async runClientViewGeneration(canonicalPlan: CanonicalPlan): Promise<StageResult<ClientView>> {
+    const prefs = this.context.preferences;
+    const derivedReadingLevel =
+      prefs?.targetReadingLevel ??
+      (prefs?.languageLevel === 'simple'
+        ? 6
+        : prefs?.languageLevel === 'conversational'
+          ? 8
+          : undefined);
+
     const result = await generateClientView(
       {
         canonicalPlan,
         clientFirstName: this.context.clientFirstName || 'there',
-        targetReadingLevel: 6,
+        targetReadingLevel: derivedReadingLevel ?? 6,
         tone: 'warm',
+        preferences: prefs
+          ? {
+              targetReadingLevel: derivedReadingLevel,
+              tone: prefs.tone || null,
+              includePsychoeducation: prefs.includePsychoeducation,
+            }
+          : undefined,
       },
       this.openai
     );

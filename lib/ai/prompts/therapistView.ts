@@ -6,6 +6,7 @@
  */
 
 import type { CanonicalPlan, TherapistPreferencesInput } from '../types';
+import { applyPreferencesToPrompt } from '@/lib/services/preferenceService';
 
 // =============================================================================
 // SYSTEM PROMPTS
@@ -93,13 +94,14 @@ ${JSON.stringify(canonicalPlan, null, 2)}
 
 `;
 
-  // Add therapist preferences if available
   if (preferences) {
-    prompt += `### Therapist Preferences
-- Preferred Modalities: ${preferences.preferredModalities.join(', ') || 'No preference'}
-${preferences.customInstructions ? `- Custom Instructions: ${preferences.customInstructions}` : ''}
-
-`;
+    prompt = applyPreferencesToPrompt(prompt, {
+      modality: preferences.preferredModalities?.join(', ') || null,
+      tone: preferences.languageLevel,
+      styleNotes: preferences.customInstructions || null,
+      readingLevel: preferences.targetReadingLevel ?? null,
+      includePsychoeducation: preferences.includePsychoeducation ?? false,
+    });
   }
 
   prompt += `### Output Structure

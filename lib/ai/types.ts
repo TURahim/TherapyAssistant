@@ -90,6 +90,8 @@ export interface TherapistPreferencesInput {
   languageLevel: 'professional' | 'conversational' | 'simple';
   includeIcdCodes: boolean;
   customInstructions?: string;
+  targetReadingLevel?: number | null;
+  includePsychoeducation?: boolean;
 }
 
 // =============================================================================

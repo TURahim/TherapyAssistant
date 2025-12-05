@@ -6,6 +6,7 @@
  */
 
 import type { CanonicalPlan, TherapistPreferencesInput } from '../types';
+import { applyPreferencesToPrompt } from '@/lib/services/preferenceService';
 
 // =============================================================================
 // SYSTEM PROMPTS
@@ -104,12 +105,13 @@ ${existingPlan.diagnoses.map(d => `- ${d.name} (${d.status})`).join('\n') || 'No
   }
 
   if (preferences) {
-    prompt += `## Therapist Preferences
-- Preferred Modalities: ${preferences.preferredModalities.join(', ') || 'No preference'}
-- Include ICD Codes: ${preferences.includeIcdCodes ? 'Yes' : 'No'}
-${preferences.customInstructions ? `- Custom Instructions: ${preferences.customInstructions}` : ''}
-
-`;
+    prompt = applyPreferencesToPrompt(prompt, {
+      modality: preferences.preferredModalities?.join(', ') || null,
+      tone: preferences.languageLevel,
+      styleNotes: preferences.customInstructions || null,
+      readingLevel: preferences.targetReadingLevel ?? null,
+      includePsychoeducation: preferences.includePsychoeducation ?? false,
+    });
   }
 
   prompt += `## Extraction Task
