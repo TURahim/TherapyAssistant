@@ -211,3 +211,30 @@ export function toDateTimeInputValue(date: Date | string | null | undefined): st
   return d.toISOString().slice(0, 16);
 }
 
+/**
+ * Format duration in seconds to readable string
+ */
+export function formatDuration(seconds: number): string {
+  if (seconds < 60) {
+    return `${seconds}s`;
+  }
+
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+
+  if (minutes < 60) {
+    return remainingSeconds > 0
+      ? `${minutes}m ${remainingSeconds}s`
+      : `${minutes} minutes`;
+  }
+
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+
+  if (remainingMinutes > 0) {
+    return `${hours}h ${remainingMinutes}m`;
+  }
+  
+  return `${hours} hour${hours > 1 ? 's' : ''}`;
+}
+
