@@ -1,0 +1,926 @@
+{
+  "generatedAt": "2025-12-05T22:34:53.552Z",
+  "sampleCount": 20,
+  "modelSummaries": {
+    "baseline": {
+      "schemaValidationRate": 1,
+      "avgCompleteness": 0.9000000000000001,
+      "avgReadingGrade": 28.7,
+      "readingPassRate": 0,
+      "crisisPrecision": 1,
+      "crisisRecall": 0.1111111111111111,
+      "crisisSeverityAgreement": 0.9,
+      "avgCost": 0.0032800000000000004,
+      "avgLatencyMs": 2452.5
+    },
+    "candidate": {
+      "schemaValidationRate": 1,
+      "avgCompleteness": 0.945,
+      "avgReadingGrade": 8,
+      "readingPassRate": 0,
+      "crisisPrecision": 1,
+      "crisisRecall": 1,
+      "crisisSeverityAgreement": 1,
+      "avgCost": 0.0033600000000000006,
+      "avgLatencyMs": 2232.5
+    }
+  },
+  "samples": [
+    {
+      "sampleId": "eval-01",
+      "model": "baseline",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 0.8,
+        "missing": [
+          "strengths",
+          "riskFactors"
+        ]
+      },
+      "readingGrade": 28.7,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.0029,
+      "latencyMs": 2120
+    },
+    {
+      "sampleId": "eval-01",
+      "model": "candidate",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 0.9,
+        "missing": [
+          "riskFactors"
+        ]
+      },
+      "readingGrade": 8,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.003,
+      "latencyMs": 1900
+    },
+    {
+      "sampleId": "eval-02",
+      "model": "baseline",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 0.8,
+        "missing": [
+          "riskFactors",
+          "sessionReferences"
+        ]
+      },
+      "readingGrade": 28.7,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.003,
+      "latencyMs": 2155
+    },
+    {
+      "sampleId": "eval-02",
+      "model": "candidate",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 0.9,
+        "missing": [
+          "riskFactors"
+        ]
+      },
+      "readingGrade": 8,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.003,
+      "latencyMs": 1935
+    },
+    {
+      "sampleId": "eval-03",
+      "model": "baseline",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 0.8,
+        "missing": [
+          "riskFactors",
+          "homework"
+        ]
+      },
+      "readingGrade": 28.7,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.003,
+      "latencyMs": 2190
+    },
+    {
+      "sampleId": "eval-03",
+      "model": "candidate",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 0.9,
+        "missing": [
+          "riskFactors"
+        ]
+      },
+      "readingGrade": 8,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.003,
+      "latencyMs": 1970
+    },
+    {
+      "sampleId": "eval-04",
+      "model": "baseline",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 0.9,
+        "missing": [
+          "riskFactors"
+        ]
+      },
+      "readingGrade": 28.7,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.003,
+      "latencyMs": 2225
+    },
+    {
+      "sampleId": "eval-04",
+      "model": "candidate",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 0.9,
+        "missing": [
+          "riskFactors"
+        ]
+      },
+      "readingGrade": 8,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.0031,
+      "latencyMs": 2005
+    },
+    {
+      "sampleId": "eval-05",
+      "model": "baseline",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 1,
+        "missing": []
+      },
+      "readingGrade": 28.7,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 0,
+        "severityMatch": true,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 1
+      },
+      "cost": 0.0031,
+      "latencyMs": 2260
+    },
+    {
+      "sampleId": "eval-05",
+      "model": "candidate",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 1,
+        "missing": []
+      },
+      "readingGrade": 8,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 1,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.0031,
+      "latencyMs": 2040
+    },
+    {
+      "sampleId": "eval-06",
+      "model": "baseline",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 0.9,
+        "missing": [
+          "homework"
+        ]
+      },
+      "readingGrade": 28.7,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 0,
+        "severityMatch": true,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 1
+      },
+      "cost": 0.0031,
+      "latencyMs": 2295
+    },
+    {
+      "sampleId": "eval-06",
+      "model": "candidate",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 1,
+        "missing": []
+      },
+      "readingGrade": 8,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 1,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.0032,
+      "latencyMs": 2075
+    },
+    {
+      "sampleId": "eval-07",
+      "model": "baseline",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 0.9,
+        "missing": [
+          "strengths"
+        ]
+      },
+      "readingGrade": 28.7,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.0032,
+      "latencyMs": 2330
+    },
+    {
+      "sampleId": "eval-07",
+      "model": "candidate",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 1,
+        "missing": []
+      },
+      "readingGrade": 8,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.0032,
+      "latencyMs": 2110
+    },
+    {
+      "sampleId": "eval-08",
+      "model": "baseline",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 1,
+        "missing": []
+      },
+      "readingGrade": 28.7,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 0,
+        "severityMatch": true,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 1
+      },
+      "cost": 0.0032,
+      "latencyMs": 2365
+    },
+    {
+      "sampleId": "eval-08",
+      "model": "candidate",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 1,
+        "missing": []
+      },
+      "readingGrade": 8,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 1,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.0033,
+      "latencyMs": 2145
+    },
+    {
+      "sampleId": "eval-09",
+      "model": "baseline",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 0.8,
+        "missing": [
+          "interventions",
+          "riskFactors"
+        ]
+      },
+      "readingGrade": 28.7,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.0032,
+      "latencyMs": 2400
+    },
+    {
+      "sampleId": "eval-09",
+      "model": "candidate",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 0.9,
+        "missing": [
+          "riskFactors"
+        ]
+      },
+      "readingGrade": 8,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.0033,
+      "latencyMs": 2180
+    },
+    {
+      "sampleId": "eval-10",
+      "model": "baseline",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 1,
+        "missing": []
+      },
+      "readingGrade": 28.7,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 0.5,
+        "severityMatch": false,
+        "truePositives": 1,
+        "falsePositives": 0,
+        "falseNegatives": 1
+      },
+      "cost": 0.0033,
+      "latencyMs": 2435
+    },
+    {
+      "sampleId": "eval-10",
+      "model": "candidate",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 1,
+        "missing": []
+      },
+      "readingGrade": 8,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 2,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.0033,
+      "latencyMs": 2215
+    },
+    {
+      "sampleId": "eval-11",
+      "model": "baseline",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 0.9,
+        "missing": [
+          "riskFactors"
+        ]
+      },
+      "readingGrade": 28.7,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.0033,
+      "latencyMs": 2470
+    },
+    {
+      "sampleId": "eval-11",
+      "model": "candidate",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 0.9,
+        "missing": [
+          "riskFactors"
+        ]
+      },
+      "readingGrade": 8,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.0034,
+      "latencyMs": 2250
+    },
+    {
+      "sampleId": "eval-12",
+      "model": "baseline",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 0.9,
+        "missing": [
+          "riskFactors"
+        ]
+      },
+      "readingGrade": 28.7,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.0033,
+      "latencyMs": 2505
+    },
+    {
+      "sampleId": "eval-12",
+      "model": "candidate",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 0.9,
+        "missing": [
+          "riskFactors"
+        ]
+      },
+      "readingGrade": 8,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.0034,
+      "latencyMs": 2285
+    },
+    {
+      "sampleId": "eval-13",
+      "model": "baseline",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 1,
+        "missing": []
+      },
+      "readingGrade": 28.7,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 0,
+        "severityMatch": true,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 1
+      },
+      "cost": 0.0034,
+      "latencyMs": 2540
+    },
+    {
+      "sampleId": "eval-13",
+      "model": "candidate",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 1,
+        "missing": []
+      },
+      "readingGrade": 8,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 1,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.0035,
+      "latencyMs": 2320
+    },
+    {
+      "sampleId": "eval-14",
+      "model": "baseline",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 1,
+        "missing": []
+      },
+      "readingGrade": 28.7,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 0,
+        "severityMatch": false,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 1
+      },
+      "cost": 0.0034,
+      "latencyMs": 2575
+    },
+    {
+      "sampleId": "eval-14",
+      "model": "candidate",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 1,
+        "missing": []
+      },
+      "readingGrade": 8,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 1,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.0035,
+      "latencyMs": 2355
+    },
+    {
+      "sampleId": "eval-15",
+      "model": "baseline",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 1,
+        "missing": []
+      },
+      "readingGrade": 28.7,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 0,
+        "severityMatch": true,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 1
+      },
+      "cost": 0.0034,
+      "latencyMs": 2610
+    },
+    {
+      "sampleId": "eval-15",
+      "model": "candidate",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 1,
+        "missing": []
+      },
+      "readingGrade": 8,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 1,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.0035,
+      "latencyMs": 2390
+    },
+    {
+      "sampleId": "eval-16",
+      "model": "baseline",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 0.8,
+        "missing": [
+          "riskFactors",
+          "sessionReferences"
+        ]
+      },
+      "readingGrade": 28.7,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.0035,
+      "latencyMs": 2645
+    },
+    {
+      "sampleId": "eval-16",
+      "model": "candidate",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 0.9,
+        "missing": [
+          "riskFactors"
+        ]
+      },
+      "readingGrade": 8,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.0036,
+      "latencyMs": 2425
+    },
+    {
+      "sampleId": "eval-17",
+      "model": "baseline",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 0.9,
+        "missing": [
+          "riskFactors"
+        ]
+      },
+      "readingGrade": 28.7,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.0035,
+      "latencyMs": 2680
+    },
+    {
+      "sampleId": "eval-17",
+      "model": "candidate",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 0.9,
+        "missing": [
+          "riskFactors"
+        ]
+      },
+      "readingGrade": 8,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.0036,
+      "latencyMs": 2460
+    },
+    {
+      "sampleId": "eval-18",
+      "model": "baseline",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 0.9,
+        "missing": [
+          "riskFactors"
+        ]
+      },
+      "readingGrade": 28.7,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.0036,
+      "latencyMs": 2715
+    },
+    {
+      "sampleId": "eval-18",
+      "model": "candidate",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 0.9,
+        "missing": [
+          "riskFactors"
+        ]
+      },
+      "readingGrade": 8,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.0037,
+      "latencyMs": 2495
+    },
+    {
+      "sampleId": "eval-19",
+      "model": "baseline",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 0.9,
+        "missing": [
+          "interventions"
+        ]
+      },
+      "readingGrade": 28.7,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 0,
+        "severityMatch": true,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 1
+      },
+      "cost": 0.0036,
+      "latencyMs": 2750
+    },
+    {
+      "sampleId": "eval-19",
+      "model": "candidate",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 1,
+        "missing": []
+      },
+      "readingGrade": 8,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 1,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.0037,
+      "latencyMs": 2530
+    },
+    {
+      "sampleId": "eval-20",
+      "model": "baseline",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 0.8,
+        "missing": [
+          "riskFactors",
+          "homework"
+        ]
+      },
+      "readingGrade": 28.7,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.0036,
+      "latencyMs": 2785
+    },
+    {
+      "sampleId": "eval-20",
+      "model": "candidate",
+      "schemaValid": true,
+      "fieldCompleteness": {
+        "score": 0.9,
+        "missing": [
+          "riskFactors"
+        ]
+      },
+      "readingGrade": 8,
+      "meetsReadingTarget": false,
+      "crisis": {
+        "precision": 1,
+        "recall": 1,
+        "severityMatch": true,
+        "truePositives": 0,
+        "falsePositives": 0,
+        "falseNegatives": 0
+      },
+      "cost": 0.0038,
+      "latencyMs": 2565
+    }
+  ]
+}
