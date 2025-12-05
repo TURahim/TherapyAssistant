@@ -5,6 +5,7 @@
  * Each stage is responsible for a specific part of the AI processing pipeline.
  * 
  * Pipeline Flow:
+ * 0. Transcription - Convert audio to text (optional)
  * 1. Preprocessing - Clean and chunk transcript
  * 2. Crisis Check - Detect safety concerns
  * 3. Extraction - Extract clinical information
@@ -21,6 +22,13 @@
 // =============================================================================
 // STAGE EXPORTS
 // =============================================================================
+
+// Stage 0: Transcription
+export {
+  transcribeAudio,
+  type TranscriptionInput,
+  type TranscriptionData,
+} from './transcription';
 
 // Stage 1: Preprocessing
 export {

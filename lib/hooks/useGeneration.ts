@@ -9,6 +9,7 @@ import type { CrisisSeverity } from '@prisma/client';
 
 export type PipelineStage =
   | 'idle'
+  | 'transcription'
   | 'preprocessing'
   | 'crisis_check'
   | 'extraction'
@@ -56,6 +57,7 @@ export interface CrisisInfo {
 
 const STAGE_CONFIG: Record<PipelineStage, { weight: number; label: string }> = {
   idle: { weight: 0, label: 'Ready' },
+  transcription: { weight: 8, label: 'Transcribing audio...' },
   preprocessing: { weight: 10, label: 'Preparing transcript...' },
   crisis_check: { weight: 15, label: 'Checking for safety concerns...' },
   extraction: { weight: 30, label: 'Extracting clinical information...' },
@@ -69,6 +71,7 @@ const STAGE_CONFIG: Record<PipelineStage, { weight: number; label: string }> = {
 };
 
 const STAGE_ORDER: PipelineStage[] = [
+  'transcription',
   'preprocessing',
   'crisis_check',
   'extraction',

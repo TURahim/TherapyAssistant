@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { TranscriptInput } from './TranscriptInput';
 import { TranscriptPreview } from './TranscriptPreview';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,8 @@ import {
   Save,
   Sparkles,
   AlertTriangle,
+  FileAudio,
+  UploadCloud,
 } from 'lucide-react';
 
 interface SessionUploaderProps {
@@ -31,11 +33,20 @@ export function SessionUploader({
 }: SessionUploaderProps) {
   const { toast } = useToast();
   const [transcript, setTranscript] = useState(existingTranscript || '');
-  const [source, setSource] = useState<'paste' | 'upload'>('paste');
+  const [source, setSource] = useState<'paste' | 'upload' | 'transcription'>('paste');
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isUploadingAudio, setIsUploadingAudio] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [audioStatus, setAudioStatus] = useState<string | null>(null);
+  const [audioError, setAudioError] = useState<string | null>(null);
+  const [uploadedAudioName, setUploadedAudioName] = useState<string | null>(null);
+  const audioInputRef = useRef<HTMLInputElement>(null);
 
-  const handleTranscriptChange = (newTranscript: string, newSource: 'paste' | 'upload') => {
+  const handleTranscriptChange = (
+    newTranscript: string,
+    newSource: 'paste' | 'upload' | 'transcription'
+  ) => {
     setTranscript(newTranscript);
     setSource(newSource);
     setHasUnsavedChanges(newTranscript !== existingTranscript);
@@ -96,12 +107,167 @@ export function SessionUploader({
     }
   };
 
+  const handleAudioUpload = async (file: File) => {
+    setAudioError(null);
+    setAudioStatus(null);
+
+    const allowedAudioTypes = [
+      'audio/mpeg',
+      'audio/mp3',
+      'audio/wav',
+      'audio/webm',
+      'audio/ogg',
+      'audio/m4a',
+    ];
+
+    if (!allowedAudioTypes.includes(file.type)) {
+      setAudioError('Unsupported audio format. Please upload MP3, WAV, WebM, OGG, or M4A.');
+      return;
+    }
+
+    if (file.size > 50 * 1024 * 1024) {
+      setAudioError('File too large. Maximum size is 50MB.');
+      return;
+    }
+
+    setIsUploadingAudio(true);
+    setAudioStatus('Uploading audio...');
+    setUploadedAudioName(file.name);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('sessionId', sessionId);
+
+      const uploadRes = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const uploadJson = await uploadRes.json();
+      if (!uploadRes.ok) {
+        throw new Error(uploadJson.error || 'Upload failed');
+      }
+
+      setAudioStatus('Transcribing audio...');
+      setIsTranscribing(true);
+
+      const transcribeRes = await fetch('/api/transcribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uploadId: uploadJson.id }),
+      });
+
+      const transcribeJson = await transcribeRes.json();
+      if (!transcribeRes.ok) {
+        throw new Error(transcribeJson.error || 'Transcription failed');
+      }
+
+      const newTranscript = transcribeJson.transcript as string;
+      setTranscript(newTranscript);
+      setSource('transcription');
+      setHasUnsavedChanges(true);
+      setAudioStatus('Transcription complete. Review then save the transcript.');
+
+      toast({
+        title: 'Transcription ready',
+        description: 'Audio was transcribed. Review and save before generating a plan.',
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Audio upload/transcription failed';
+      setAudioError(message);
+      toast({
+        title: 'Transcription failed',
+        description: message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUploadingAudio(false);
+      setIsTranscribing(false);
+    }
+  };
+
+  const handleAudioInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      void handleAudioUpload(file);
+    }
+  };
+
   const isValidTranscript = transcript.trim().length >= 100;
 
   return (
     <div className="space-y-6">
       {/* AI Disclaimer */}
       <AIDisclaimer />
+
+      {/* Audio Upload & Transcription */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Audio Upload (Auto-Transcribe)</CardTitle>
+          <CardDescription>
+            Upload an audio recording to generate a transcript automatically. Files auto-delete after 24 hours.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div
+            className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-lg border border-dashed p-4"
+          >
+            <div className="flex items-center gap-3">
+              <div className="rounded-full bg-primary/10 p-2 text-primary">
+                <FileAudio className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="font-medium">Upload audio file</p>
+                <p className="text-sm text-muted-foreground">
+                  Accepted: MP3, WAV, WebM, OGG, M4A (max 50MB)
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <input
+                ref={audioInputRef}
+                type="file"
+                accept="audio/*"
+                className="hidden"
+                onChange={handleAudioInputChange}
+                disabled={disabled || isUploadingAudio || isTranscribing}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => audioInputRef.current?.click()}
+                disabled={disabled || isUploadingAudio || isTranscribing}
+              >
+                {isUploadingAudio || isTranscribing ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <UploadCloud className="h-4 w-4 mr-2" />
+                )}
+                {isTranscribing ? 'Transcribing...' : 'Select audio'}
+              </Button>
+            </div>
+          </div>
+
+          {uploadedAudioName && (
+            <div className="text-sm text-muted-foreground">
+              Selected: <span className="font-medium text-foreground">{uploadedAudioName}</span>
+            </div>
+          )}
+
+          {audioStatus && (
+            <div className="text-sm text-foreground">{audioStatus}</div>
+          )}
+
+          {audioError && (
+            <div className="text-sm text-destructive flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              {audioError}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Transcript Input */}
       <Card>
@@ -114,7 +280,7 @@ export function SessionUploader({
         <CardContent>
           <TranscriptInput
             onTranscriptChange={handleTranscriptChange}
-            disabled={disabled || isSaving}
+            disabled={disabled || isSaving || isTranscribing || isUploadingAudio}
           />
         </CardContent>
       </Card>
@@ -139,7 +305,7 @@ export function SessionUploader({
         <Button
           variant="outline"
           onClick={handleSave}
-          disabled={disabled || isSaving || !transcript.trim()}
+          disabled={disabled || isSaving || isUploadingAudio || isTranscribing || !transcript.trim()}
         >
           {isSaving ? (
             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -152,7 +318,14 @@ export function SessionUploader({
         {onGeneratePlan && (
           <Button
             onClick={onGeneratePlan}
-            disabled={disabled || !isValidTranscript || hasUnsavedChanges}
+            disabled={
+              disabled ||
+              isSaving ||
+              isUploadingAudio ||
+              isTranscribing ||
+              !isValidTranscript ||
+              hasUnsavedChanges
+            }
           >
             <Sparkles className="h-4 w-4 mr-2" />
             Generate Treatment Plan

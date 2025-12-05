@@ -5,10 +5,10 @@
 A full-stack application that transforms therapy session transcripts into personalized, AI-generated treatment plans with dual views for therapists and clients.
 
 ## 📌 Latest Progress
+- PR #18 (Audio Transcription) completed: Whisper transcription stage, transcribe API, and audio upload/transcription UI with 24h expiry.
 - PR #17 (Therapist Preferences) completed: preferences service/API, settings UI, and prompt integration.
 - PR #16 (Homework Tracking) completed: client homework UI, homework service/API, status updates.
 - PR #15 (Client Portal) completed: client-facing home/plan/homework pages and components.
-- PR #14 (Session Summaries) completed: dual-tone therapist/client summaries with edit, regenerate, and approval flow.
 
 ## 🎯 Overview
 

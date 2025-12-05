@@ -23,6 +23,7 @@ import { classifyCrisis } from './stages/crisisClassifier';
 import { extractCanonicalPlan, createNewPlanFromExtraction } from './stages/canonicalExtraction';
 import { generateTherapistView } from './stages/therapistViewGen';
 import { generateClientView } from './stages/clientViewGen';
+import { transcribeAudio } from './stages/transcription';
 
 // =============================================================================
 // OPENAI CLIENT
@@ -75,6 +76,20 @@ export class TreatmentPlanPipeline {
     // Validate AI is enabled
     if (!isAIEnabled()) {
       return this.createErrorResult('AI features are not enabled. Configure OPENAI_API_KEY.');
+    }
+
+    // Stage 0: Transcription (when transcript not provided but audio is)
+    if (!this.context.transcript && this.context.audioStoragePath) {
+      this.reportProgress('transcription', 0, 'Transcribing audio...');
+      const transcriptionResult = await this.runTranscription();
+      if (!transcriptionResult.success || !transcriptionResult.data) {
+        return this.createErrorResult(`Transcription failed: ${transcriptionResult.error}`);
+      }
+      if (transcriptionResult.tokenUsage) {
+        this.addTokenUsageInternal(transcriptionResult.tokenUsage);
+      }
+      this.context.transcript = transcriptionResult.data.transcript;
+      this.reportProgress('transcription', 100, 'Transcription complete');
     }
 
     // Validate transcript
@@ -193,8 +208,27 @@ export class TreatmentPlanPipeline {
   // STAGE IMPLEMENTATIONS
   // ===========================================================================
 
+  private async runTranscription(): Promise<StageResult<{ transcript: string }>> {
+    if (!this.context.audioStoragePath) {
+      return {
+        success: false,
+        error: 'No audio file provided',
+        durationMs: 0,
+      };
+    }
+
+    return transcribeAudio(
+      {
+        filePath: this.context.audioStoragePath,
+        mimeType: this.context.audioMimeType,
+        uploadId: this.context.audioUploadId,
+      },
+      this.openai
+    );
+  }
+
   private validateTranscript(): boolean {
-    const { transcript } = this.context;
+    const transcript = this.context.transcript?.trim();
     
     if (!transcript || transcript.length < LIMITS.minTranscriptLength) {
       this.errors.push('Transcript is too short');
@@ -205,6 +239,8 @@ export class TreatmentPlanPipeline {
       this.errors.push('Transcript exceeds maximum length');
       return false;
     }
+
+    this.context.transcript = transcript;
     
     return true;
   }
@@ -213,7 +249,7 @@ export class TreatmentPlanPipeline {
    * Stage 1: Preprocessing - Clean and structure transcript
    */
   private async runPreprocessing(): Promise<StageResult<PreprocessedTranscript>> {
-    return preprocessTranscript(this.context.transcript);
+    return preprocessTranscript(this.context.transcript!);
   }
 
   /**
@@ -492,7 +528,10 @@ export function createPipelineContext(params: {
   clientId: string;
   therapistId: string;
   userId: string;
-  transcript: string;
+  transcript?: string;
+  audioUploadId?: string;
+  audioStoragePath?: string;
+  audioMimeType?: string;
   existingPlan?: CanonicalPlan | null;
 }): PipelineContext {
   return {

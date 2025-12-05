@@ -38,14 +38,18 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { sessionId, transcript } = body;
+    const { sessionId, transcript, audioUploadId } = body;
 
     // Validate input
     if (!sessionId) {
       throw new ValidationError('Session ID is required');
     }
 
-    if (!transcript || transcript.trim().length < 100) {
+    if (!transcript && !audioUploadId) {
+      throw new ValidationError('Transcript or audio upload is required');
+    }
+
+    if (transcript && transcript.trim().length < 100) {
       throw new ValidationError('Transcript must be at least 100 characters');
     }
 
@@ -88,7 +92,8 @@ export async function POST(
       clientId: sessionData.clientId,
       therapistId: therapist.id,
       userId: session.user.id,
-      transcript: transcript.trim(),
+      transcript: transcript?.trim(),
+      audioUploadId,
     });
 
     if (result.crisisDetected && !result.success) {

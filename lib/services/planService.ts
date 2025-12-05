@@ -1,7 +1,7 @@
 import * as planQueries from '@/lib/db/queries/plans';
-import * as clientQueries from '@/lib/db/queries/clients';
 import * as sessionQueries from '@/lib/db/queries/sessions';
 import * as auditService from '@/lib/services/auditService';
+import * as storageService from '@/lib/services/storageService';
 import { NotFoundError, ForbiddenError, ValidationError, ConflictError } from '@/lib/utils/errors';
 import { prisma } from '@/lib/db/prisma';
 import { runPipeline, createPipelineContext } from '@/lib/ai/pipeline';
@@ -17,7 +17,8 @@ export interface PlanGenerationOptions {
   clientId: string;
   therapistId: string;
   userId: string;
-  transcript: string;
+  transcript?: string;
+  audioUploadId?: string;
   onProgress?: (progress: PipelineProgress) => void;
 }
 
@@ -200,7 +201,7 @@ export async function getClientPlan(
 export async function generatePlan(
   options: PlanGenerationOptions
 ): Promise<PlanGenerationResult> {
-  const { sessionId, clientId, therapistId, userId, transcript, onProgress } = options;
+  const { sessionId, clientId, therapistId, userId, transcript, audioUploadId, onProgress } = options;
 
   // Verify session belongs to client and therapist
   const session = await sessionQueries.getSessionById(sessionId);
@@ -210,6 +211,28 @@ export async function generatePlan(
 
   if (session.therapistId !== therapistId || session.clientId !== clientId) {
     throw new ForbiddenError('You do not have access to this session');
+  }
+
+  // Ensure we have either transcript text or an audio upload to transcribe
+  if (!transcript?.trim() && !audioUploadId) {
+    throw new ValidationError('Transcript or audio upload is required');
+  }
+
+  let audioUpload: Awaited<ReturnType<typeof storageService.getUpload>> | null = null;
+  if (audioUploadId) {
+    audioUpload = await storageService.getUpload(audioUploadId);
+    if (!audioUpload) {
+      throw new NotFoundError('Audio upload not found');
+    }
+    if (audioUpload.sessionId !== sessionId) {
+      throw new ForbiddenError('Upload does not belong to this session');
+    }
+    if (audioUpload.mediaType !== 'AUDIO' && audioUpload.mediaType !== 'VIDEO') {
+      throw new ValidationError('Upload must be an audio or video file');
+    }
+    if (audioUpload.expiresAt && audioUpload.expiresAt < new Date()) {
+      throw new ValidationError('Upload has expired. Please re-upload the audio file.');
+    }
   }
 
   // Get or create plan
@@ -257,7 +280,10 @@ export async function generatePlan(
       clientId,
       therapistId,
       userId,
-      transcript,
+      transcript: transcript?.trim(),
+      audioUploadId: audioUpload?.id,
+      audioStoragePath: audioUpload?.storagePath,
+      audioMimeType: audioUpload?.mimeType,
       existingPlan: existingCanonical,
     });
 

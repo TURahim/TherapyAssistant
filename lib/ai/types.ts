@@ -8,6 +8,7 @@ import type { CrisisSeverity, TherapeuticModality } from '@prisma/client';
  * Pipeline stage names
  */
 export type PipelineStage =
+  | 'transcription'
   | 'preprocessing'
   | 'crisis_check'
   | 'extraction'
@@ -25,7 +26,11 @@ export interface PipelineContext {
   clientId: string;
   therapistId: string;
   userId: string;
-  transcript: string;
+  transcript?: string;
+  /** Optional audio upload details if transcription is required */
+  audioUploadId?: string;
+  audioStoragePath?: string;
+  audioMimeType?: string;
   existingPlan?: CanonicalPlan | null;
   preferences?: TherapistPreferencesInput;
   startTime: number;
