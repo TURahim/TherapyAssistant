@@ -34,7 +34,7 @@ import {
 } from 'lucide-react';
 
 interface PageProps {
-  params: Promise<{ sessionId: string }>;
+  params: { sessionId: string };
 }
 
 const statusConfig = {
@@ -65,7 +65,7 @@ const crisisConfig = {
 };
 
 export default function SessionDetailPage({ params }: PageProps) {
-  const { sessionId } = use(params);
+  const { sessionId } = params;
   const { toast } = useToast();
   const router = useRouter();
   const [showCrisisModal, setShowCrisisModal] = useState(false);
